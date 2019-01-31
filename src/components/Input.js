@@ -6,11 +6,10 @@ class Input extends Component {
     countryCode: null
   };
   render() {
-    let {
+    const {
       placeholder,
       type,
       handleSubmit,
-      handleInput,
       countryData
     } = this.props;
 

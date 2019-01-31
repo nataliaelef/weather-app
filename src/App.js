@@ -2,10 +2,9 @@ import React, { Component } from 'react';
 import Input from './components/Input';
 import GeolocationButton from './components/GeolocationButton';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCompass } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
-import { appid } from './config';
+import { appid, client_id } from './config';
 import DayResults from './components/DayResults';
 import './App.css';
 import countryData from 'country-region-data';
@@ -17,18 +16,19 @@ class App extends Component {
     latitude: null,
     longitude: null,
     weatherData: [],
-    city: ''
+    city: '',
+    photoData: null,
   };
 
   componentDidUpdate(prevProps, prevState) {
     const { latitude, longitude } = this.state;
-
     if (prevState.latitude !== latitude || prevState.longitude !== longitude) {
       this.fetchWeatherData(latitude, longitude);
     }
   }
 
   render() {
+    const {city, weatherData, photoData} = this.state;
     return (
       <div className="App">
         <div className="header">
@@ -42,7 +42,7 @@ class App extends Component {
           <GeolocationButton id="geolocation" handleClick={this.handleClick} />
         </div>
         <div className="a">
-          <DayResults data={this.state.weatherData} city={this.state.city} />
+          <DayResults data={weatherData} city={city} photoData={photoData} />
         </div>
       </div>
     );
@@ -51,12 +51,11 @@ class App extends Component {
   handleClick = id => {
     if (id === 'geolocation') {
       navigator.geolocation.getCurrentPosition(position => {
-        // console.log(position);
         this.setState({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
         });
-      });
+      }, err => console.dir(err));
     }
   };
 
@@ -64,28 +63,36 @@ class App extends Component {
     e.preventDefault();
     if (locationInput && countryCode) {
       const fullLocation = `${locationInput},${countryCode}`;
-      //console.log(fullLocation);
       this.fetchWeatherData(null, null, fullLocation);
     }
   };
 
   fetchWeatherData = (latitude, longitude, location) => {
+    //Check if info from Geolocate or Text Input
     const url = latitude
       ? `http://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&APPID=${appid}&units=metric`
       : `http://api.openweathermap.org/data/2.5/weather?q=${location}&APPID=${appid}&units=metric`;
-
+      let weatherData;
+      let city;
+    //Make get request for Weather info, then request for photo
     axios
       .get(url)
       .then(res => {
+        weatherData = Object.entries(res.data.main);
+        city = res.data.name;
+        return axios.get(`https://api.unsplash.com/search/photos?query=${city}&client_id=${client_id}`)
+      })
+      .then(res => {
         this.setState({
-          weatherData: Object.entries(res.data.main),
-          city: res.data.name
-        });
+          weatherData,
+          photoData: res.data.results[0],
+          city,
+        })
       })
       .catch(err => {
         console.log(err.message);
       });
   };
-}
 
+}
 export default App;
