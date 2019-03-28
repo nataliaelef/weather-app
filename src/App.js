@@ -70,8 +70,8 @@ class App extends Component {
   fetchWeatherData = (latitude, longitude, location) => {
     //Check if info from Geolocate or Text Input
     const url = latitude
-      ? `http://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&APPID=${appid}&units=metric`
-      : `http://api.openweathermap.org/data/2.5/weather?q=${location}&APPID=${appid}&units=metric`;
+      ? `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&APPID=${appid}&units=metric`
+      : `https://api.openweathermap.org/data/2.5/weather?q=${location}&APPID=${appid}&units=metric`;
       let weatherData;
       let city;
     //Make get request for Weather info, then request for photo
